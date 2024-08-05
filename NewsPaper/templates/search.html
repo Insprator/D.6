@@ -1,0 +1,90 @@
+<!--  наследуемся от шаблона default.html, который мы создавали для flatpages -->
+{% extends 'flatpages/default.html' %}
+{% load custom_filters %}
+{% load custom_tags %}
+<!-- Название у нас будет products -->
+{% block title %}
+Новости
+{% endblock title %}
+
+<!-- В контенте на странице мы выводим все товары -->
+{% block content %}
+<h1>НОВОСТИ</h1>
+   {# Добавляем форму, которая объединяет набор полей, которые будут отправляться в запросе #}
+   <form action="" method="get">
+       {# Переменная, которую мы передали через контекст, может сгенерировать нам форму с полями #}
+       {{ filterset.form.as_p }}
+       {# Добавим кнопку отправки данных формы #}
+       <input type="submit" value="Найти" />
+   </form>
+   <hr>
+   <a href="{% url 'post_list'  %}">Убрать поиск</a>
+
+   <hr>
+   {% if newsposts %}
+       <table border="1" cellpadding="5"
+              style="border-collapse: collapse;
+              border: 1px solid black; background-color: silver;" width="100%">
+            <col style="width:20%">
+        	<col style="width:20%">
+            <col style="width:40%">
+			<col style="width:10%">
+			<col style="width:10%">
+
+           <THEAD>
+           <tr style="background-color: gray; color: white">
+               <th>Название</th>
+               <th>Дата создания</th>
+               <th>Текст</th>
+			   <th></th>
+			   <th></th>
+           </tr>
+
+           <!-- Для каждой новости будет генерироваться новая строчка,
+           т.е. новый HTML код, который указан в теле цикла.
+           При этом сам цикл работает точно так же, как и в Python.
+           newsposts — переменная цикла, т.е. наша новость полученная из списка -->
+           {% for queryset_newsposts in newsposts %}
+           <tr>
+               <!-- Не забываем, что переменные в шаблоне ничем не отличаются
+                от переменных в Python. Здесь также можно получать доступ к
+                полям объекта модели. Например, здесь мы выводим имя,
+                в следующем столбце описание, и т.д.  -->
+               <td>{{ queryset_newsposts.title }}</td>
+               <td>{{ queryset_newsposts.dateCreation }}</td>
+               <td>{{ queryset_newsposts.text|truncatechars:20 }}</td>
+			   <td> <a href="../{{queryset_newsposts.id }}/update">Редактирование</a></td>
+               <td> <a href="../{{queryset_newsposts.id }}/delete">Удаление</a></td>
+
+           </tr>
+           {% endfor %}
+
+       </table>
+   {% else %}
+       <h2> Новостей нет!</h2>
+   {% endif %}
+
+   {# Добавляем пагинацию на страницу #}
+
+   {# Информация о предыдущих страницах #}
+
+     {% if page_obj.has_previous %}
+       {# Для каждой ссылки пагинации указываем обработку через новый тег #}
+       <a href="?{% url_replace page=1 %}">1</a>
+       {% if page_obj.previous_page_number != 1 %}
+           ...
+           <a href="?{% url_replace page=page_obj.previous_page_number %}">{{ page_obj.previous_page_number }}</a>
+       {% endif %}
+   {% endif %}
+
+   {{ page_obj.number }}
+
+   {% if page_obj.has_next %}
+       <a href="?{% url_replace page=page_obj.next_page_number %}">{{ page_obj.next_page_number }}</a>
+       {% if paginator.num_pages != page_obj.next_page_number %}
+           ...
+           <a href="?{% url_replace page=page_obj.paginator.num_pages %}">{{ page_obj.paginator.num_pages }}</a>
+       {% endif %}
+   {% endif %}
+
+{% endblock content %}

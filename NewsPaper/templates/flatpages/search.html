@@ -1,0 +1,54 @@
+<!--наследуемся от шаблона default.html, который мы создавали-->
+{% extends 'flatpages/default.html' %}
+{% load censor %}
+{% load custom_tags %}
+
+<!-- Название у нас будет Добавить публикацию -->
+{% block title %}
+Search
+{% endblock title %}
+
+<!-- В контенте на странице мы выводим поля формы, идентификатор которой был передан в url -->
+{% block content %}
+<h2> Страница поиска </h2>
+<hr>
+<h5> Укажите необходимую информацию, согласно которой будет выполнен поиск: </h5>
+    <form action="" method="get">
+        {% csrf_token %}
+        {{ filterset.form.as_p }}
+        <input type="submit" value="Найти" />
+    </form>
+
+<hr />
+    <ul>
+        {% for post in search %}
+            <h5><a href="{% url 'post_detail' post.id %}">{{ post.title|censor_w }}</a></h5>
+        {% empty %}
+            <h3>Ничего не найдено</h3>
+        {% endfor %}
+    </ul>
+
+{# Добавляем пагинацию на страницу #}
+
+   {# Информация о предыдущих страницах #}
+   {% if page_obj.has_previous %}
+       <a href="?{% url_replace page=1 %}">1</a>
+       {% if page_obj.previous_page_number != 1 %}
+           ...
+           <a href="?{% url_replace page=page_obj.previous_page_number %}">{{ page_obj.previous_page_number }}</a>
+       {% endif %}
+   {% endif %}
+
+   {# Информация о текущей странице #}
+   {{ page_obj.number }}
+
+   {# Информация о следующих страницах #}
+   {% if page_obj.has_next %}
+       <a href="?{% url_replace page=page_obj.next_page_number %}">{{ page_obj.next_page_number }}</a>
+       {% if paginator.num_pages != page_obj.next_page_number %}
+           ...
+           <a href="?{% url_replace page=page_obj.paginator.num_pages %}">{{ page_obj.paginator.num_pages }}</a>
+       {% endif %}
+   {% endif %}
+
+{% endblock content %}
